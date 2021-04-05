@@ -5,7 +5,7 @@ import java.io.InputStream
 
 object ResourcePath{
   def resource(resRoot: ResourceRoot) = {
-    new ResourcePath(resRoot, Array.empty[String])
+    new ResourcePath(resRoot, IndexedSeq.empty[String])
   }
 }
 
@@ -14,7 +14,7 @@ object ResourcePath{
   *
   * Classloaders are tricky: http://stackoverflow.com/questions/12292926
   */
-class ResourcePath private[os](val resRoot: ResourceRoot, segments0: Array[String])
+class ResourcePath private[os](val resRoot: ResourceRoot, segments0: IndexedSeq[String])
   extends BasePathImpl with ReadablePath with SegmentedPath {
   def getInputStream = resRoot.getResourceAsStream(segments.mkString("/")) match{
     case null => throw ResourceNotFoundException(this)
@@ -25,11 +25,11 @@ class ResourcePath private[os](val resRoot: ResourceRoot, segments0: Array[Strin
   type ThisType = ResourcePath
   def last = segments0.last
   override def toString = resRoot.errorName + "/" + segments0.mkString("/")
-  protected[this] def make(p: Seq[String], ups: Int) = {
+  protected[this] def make(p: IndexedSeq[String], ups: Int) = {
     if (ups > 0){
       throw PathError.AbsolutePathOutsideRoot
     }
-    new ResourcePath(resRoot, p.toArray[String])
+    new ResourcePath(resRoot, p)
   }
 
   def relativeTo(base: ResourcePath) = {

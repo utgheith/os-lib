@@ -218,7 +218,7 @@ object Shellable{
     Shellable(s.toSeq.flatMap(f(_).value))
 
   implicit def ArrayShellable[T](s: Array[T])(implicit f: T => Shellable): Shellable =
-    Shellable(s.flatMap(f(_).value))
+    Shellable(s.toSeq.flatMap(f(_).value))
 }
 
 /**

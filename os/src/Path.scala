@@ -30,7 +30,7 @@ object PathChunk{
     override def toString() = s.name
   }
   implicit class ArrayPathChunk[T](a: Array[T])(implicit f: T => PathChunk) extends PathChunk {
-    val inner = SeqPathChunk(a)(f)
+    val inner = SeqPathChunk(a.toIndexedSeq)(f)
     def segments = inner.segments
     def ups = inner.ups
 
@@ -162,7 +162,7 @@ object BasePath {
 }
 
 trait SegmentedPath extends BasePath{
-  protected[this] def make(p: Seq[String], ups: Int): ThisType
+  protected[this] def make(p: IndexedSeq[String], ups: Int): ThisType
   /**
     * The individual path segments of this path.
     */
@@ -237,14 +237,14 @@ object FilePath {
   * segments can only occur at the left-end of the path, and
   * are collapsed into a single number [[ups]].
   */
-class RelPath private[os](segments0: Array[String], val ups: Int)
+class RelPath private[os](segments0: IndexedSeq[String], val ups: Int)
   extends FilePath with BasePathImpl with SegmentedPath {
   def last = segments.last
   val segments: IndexedSeq[String] = segments0
   type ThisType = RelPath
   require(ups >= 0)
-  protected[this] def make(p: Seq[String], ups: Int) = {
-    new RelPath(p.toArray[String], ups + this.ups)
+  protected[this] def make(p: IndexedSeq[String], ups: Int) = {
+    new RelPath(p, ups + this.ups)
   }
 
   def relativeTo(base: RelPath): RelPath = {
@@ -288,7 +288,7 @@ object RelPath {
 
   def apply(segments0: IndexedSeq[String], ups: Int) = {
     segments0.foreach(BasePath.checkSegment)
-    new RelPath(segments0.toArray, ups)
+    new RelPath(segments0, ups)
   }
 
   import Ordering.Implicits._
@@ -303,12 +303,12 @@ object RelPath {
 /**
   * A relative path on the filesystem, without any `..` or `.` segments
   */
-class SubPath private[os](val segments0: Array[String])
+class SubPath private[os](val segments0: IndexedSeq[String])
   extends FilePath with BasePathImpl with SegmentedPath {
   def last = segments.last
   val segments: IndexedSeq[String] = segments0
   type ThisType = SubPath
-  protected[this] def make(p: Seq[String], ups: Int) = {
+  protected[this] def make(p: IndexedSeq[String], ups: Int) = {
     require(ups == 0)
     new SubPath(p.toArray[String])
   }
@@ -331,7 +331,8 @@ class SubPath private[os](val segments0: Array[String])
 }
 
 object SubPath {
-  private[os] def relativeTo0(segments0: Array[String], segments: IndexedSeq[String]): RelPath = {
+  private[os] def relativeTo0(segments0: IndexedSeq[String],
+                              segments: IndexedSeq[String]): RelPath = {
 
     val commonPrefix = {
       val maxSize = scala.math.min(segments0.length, segments.length)
@@ -347,7 +348,7 @@ object SubPath {
 
   def apply(segments0: IndexedSeq[String]): SubPath = {
     segments0.foreach(BasePath.checkSegment)
-    new SubPath(segments0.toArray)
+    new SubPath(segments0)
   }
 
   import Ordering.Implicits._

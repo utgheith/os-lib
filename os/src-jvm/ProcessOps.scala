@@ -79,7 +79,7 @@ case class proc(command: Shellable*) {
 
     sub.join(timeout)
 
-    val chunksArr = chunks.iterator.asScala.toArray
+    val chunksArr = chunks.iterator.asScala.toIndexedSeq
     val res = CommandResult(sub.exitCode(), chunksArr)
     if (res.exitCode == 0 || !check) res
     else throw SubprocessException(res)
